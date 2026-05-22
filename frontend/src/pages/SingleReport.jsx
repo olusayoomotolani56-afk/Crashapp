@@ -119,13 +119,19 @@ function SingleReport() {
               </span>
             </div>
           </div>
-          <button
-            className={`upvote-btn ${report.has_upvoted ? 'upvoted' : ''}`}
-            onClick={handleUpvote}
-            title={report.has_upvoted ? 'Remove upvote' : 'Upvote this report'}
-          >
-            ▲ {report.upvote_count}
-          </button>
+          {isOwner ? (
+            <span className="upvote-btn upvote-btn-disabled" title="You cannot upvote your own report">
+              ▲ {report.upvote_count}
+            </span>
+          ) : (
+            <button
+              className={`upvote-btn ${report.has_upvoted ? 'upvoted' : ''}`}
+              onClick={handleUpvote}
+              title={report.has_upvoted ? 'Remove upvote' : 'Upvote this report'}
+            >
+              ▲ {report.upvote_count}
+            </button>
+          )}
         </div>
 
         {report.description ? (

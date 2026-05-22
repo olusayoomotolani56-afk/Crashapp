@@ -12,7 +12,7 @@ function Feed() {
   const [search, setSearch] = useState('')
   const [tool, setTool] = useState('')
   const [status, setStatus] = useState('')
-  const { isAuth } = useAuth()
+  const { user, isAuth } = useAuth()
   const { toast } = useUI()
   const navigate = useNavigate()
 
@@ -151,12 +151,18 @@ function Feed() {
                     </span>
                   </p>
                 </div>
-                <button
-                  className={`upvote-btn ${report.has_upvoted ? 'upvoted' : ''}`}
-                  onClick={() => handleUpvote(report.id, report.has_upvoted)}
-                >
-                  ▲ {report.upvote_count}
-                </button>
+                {user && user.id === report.user_id ? (
+                  <span className="upvote-btn upvote-btn-disabled" title="You cannot upvote your own report">
+                    ▲ {report.upvote_count}
+                  </span>
+                ) : (
+                  <button
+                    className={`upvote-btn ${report.has_upvoted ? 'upvoted' : ''}`}
+                    onClick={() => handleUpvote(report.id, report.has_upvoted)}
+                  >
+                    ▲ {report.upvote_count}
+                  </button>
+                )}
               </div>
             </div>
           ))}

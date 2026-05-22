@@ -14,7 +14,7 @@ const getReports = async (req, res) => {
               COUNT(upvotes.id) AS upvote_count,
               users.name AS author_name,
               users.avatar_url AS author_avatar_url,
-              BOOL_OR(upvotes.user_id = $4) AS has_upvoted
+              COALESCE(BOOL_OR(upvotes.user_id = $4), false) AS has_upvoted
        FROM reports
        LEFT JOIN upvotes ON reports.id = upvotes.report_id
        JOIN users ON reports.user_id = users.id
