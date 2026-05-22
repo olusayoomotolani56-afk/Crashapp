@@ -1,14 +1,13 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const pool = require('./db');
-const jwt = require('jsonwebtoken');
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'https://crashapp-p305.onrender.com/api/auth/google/callback'
+      callbackURL: (process.env.BACKEND_URL || 'http://localhost:5000') + '/api/auth/google/callback'
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

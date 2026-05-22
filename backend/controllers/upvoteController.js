@@ -1,6 +1,10 @@
 const pool = require('../db');
 
-// Upvote a report
+// Upvote a report.
+// Deduplication is enforced by a UNIQUE(report_id, user_id) constraint in the DB.
+// If the user already upvoted, Postgres raises error code 23505 (unique_violation),
+// which we catch and convert to a 409 Conflict instead of letting it become a 500.
+// Self-upvoting is blocked before the INSERT so it never hits the constraint.
 const upvoteReport = async (req, res) => {
   const { id } = req.params;
   const user_id = req.user.id;

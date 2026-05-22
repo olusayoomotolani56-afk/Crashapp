@@ -1,102 +1,302 @@
 {
   "info": {
     "_postman_id": "fa52c179-e5b5-4ebf-8149-3bc2ea25c6e7",
-    "name": "crashapp",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "52691344",
-    "_collection_link": "https://go.postman.co/collection/52691344-fa52c179-e5b5-4ebf-8149-3bc2ea25c6e7?source=collection_link"
+    "name": "CrashApp API",
+    "description": "All 13 endpoints for the CrashApp bug/outage tracker API.\n\nSet the `baseUrl` variable to your backend URL (default: http://localhost:5000).\nSet the `token` variable after login/register to use protected endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
   "item": [
     {
-      "name": "Register User",
-      "request": {
-        "method": "POST",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "Login User",
-      "request": {
-        "method": "POST",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "Get All Reports",
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "Create Report",
-      "request": {
-        "method": "POST",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "Upvote Report",
-      "request": {
-        "method": "POST",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "Remove Upvote",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/reports/1/upvote",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "5000",
-          "path": [
-            "api",
-            "reports",
-            "1",
-            "upvote"
-          ]
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user. Returns JWT token and user object."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. Returns JWT token and user object."
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate Google OAuth",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google"]
+            },
+            "description": "Opens the Google OAuth consent screen. Open in a browser — not testable via Postman directly."
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google/callback?code=GOOGLE_AUTH_CODE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google", "callback"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "GOOGLE_AUTH_CODE",
+                  "description": "Code returned by Google — handled automatically in the OAuth flow."
+                }
+              ]
+            },
+            "description": "Callback handled by Google after user grants permission. Redirects to frontend with JWT."
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     },
     {
-      "name": "Get User Profile",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5000/api/users/1",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "5000",
-          "path": [
-            "api",
-            "users",
-            "1"
-          ]
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Get All Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"],
+              "query": [
+                { "key": "status", "value": "Ongoing", "disabled": true, "description": "Filter by Ongoing or Resolved" },
+                { "key": "tool", "value": "Vercel", "disabled": true, "description": "Filter by tool name" },
+                { "key": "sort", "value": "recent", "disabled": true, "description": "Sort by created_at DESC instead of upvotes" }
+              ]
+            },
+            "description": "Returns all reports ordered by upvote count DESC. Supports ?status=, ?tool=, ?sort=recent."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/search?q=deploy",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "search"],
+              "query": [
+                { "key": "q", "value": "deploy", "description": "Searches tool_name, title and description (ILIKE / full-text)" },
+                { "key": "status", "value": "Ongoing", "disabled": true },
+                { "key": "tool", "value": "Vercel", "disabled": true }
+              ]
+            },
+            "description": "Full-text search across tool_name, title, and description. Filters can be combined."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}", "description": "Optional — include to get has_upvoted for the current user" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "1"]
+            },
+            "description": "Returns a single report with upvote_count and has_upvoted. Returns 404 if not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Report (text only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_name\": \"Vercel\",\n  \"title\": \"Deployments failing with 500 error\",\n  \"description\": \"All new deployments are returning 500 errors since 09:00 UTC. Rollback does not help.\",\n  \"severity\": \"Critical\",\n  \"status\": \"Ongoing\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"]
+            },
+            "description": "Create a report without a screenshot. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Report (with screenshot)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "tool_name", "value": "GitHub", "type": "text" },
+                { "key": "title", "value": "Actions not triggering on push", "type": "text" },
+                { "key": "description", "value": "Push events are not triggering CI workflows since 14:30 UTC.", "type": "text" },
+                { "key": "severity", "value": "High", "type": "text" },
+                { "key": "status", "value": "Ongoing", "type": "text" },
+                { "key": "screenshot", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports"]
+            },
+            "description": "Create a report with an optional screenshot (multipart/form-data). Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Edit Report",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_name\": \"Vercel\",\n  \"title\": \"Deployments failing with 500 error (UPDATED)\",\n  \"description\": \"Updated description after further investigation.\",\n  \"severity\": \"High\",\n  \"status\": \"Resolved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "1"]
+            },
+            "description": "Update a report. Returns 403 if the authenticated user is not the owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Report",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "1"]
+            },
+            "description": "Delete a report. Returns 403 if the authenticated user is not the owner."
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     },
     {
-      "name": "Create Report With Screenshot",
-      "request": {
-        "method": "POST",
-        "header": []
-      },
-      "response": []
+      "name": "Upvotes",
+      "item": [
+        {
+          "name": "Upvote Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/2/upvote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "2", "upvote"]
+            },
+            "description": "Upvote a report. Returns 400 for self-upvote, 409 if already upvoted. Requires auth."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Upvote",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/2/upvote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "2", "upvote"]
+            },
+            "description": "Remove an upvote. Returns 404 if no upvote exists. Requires auth."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            },
+            "description": "Returns user info and all their reports with upvote counts."
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

@@ -27,7 +27,7 @@ router.get('/google/callback',
     );
 
     // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'https://crashapp-one.vercel.app';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
       id: req.user.id,
       name: req.user.name,

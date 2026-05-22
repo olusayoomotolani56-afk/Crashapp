@@ -29,6 +29,7 @@ function FileReport() {
   const [description, setDescription] = useState('')
   const [severity, setSeverity] = useState('Low')
   const [status, setStatus] = useState('Ongoing')
+  const [screenshot, setScreenshot] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -41,12 +42,16 @@ function FileReport() {
     setError(null)
 
     try {
-      await api.post('/api/reports', {
-        tool_name: toolName.trim(),
-        title: title.trim(),
-        description: description.trim(),
-        severity,
-        status
+      const formData = new FormData()
+      formData.append('tool_name', toolName.trim())
+      formData.append('title', title.trim())
+      formData.append('description', description.trim())
+      formData.append('severity', severity)
+      formData.append('status', status)
+      if (screenshot) formData.append('screenshot', screenshot)
+
+      await api.post('/api/reports', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
       toast('Report filed', { tone: 'success' })
       navigate('/')
@@ -152,6 +157,16 @@ function FileReport() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="form-group">
+            <label>Screenshot <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/gif"
+              onChange={(e) => setScreenshot(e.target.files[0] || null)}
+            />
+            <p className="field-hint">JPG, PNG or GIF. Max 10 MB.</p>
           </div>
 
           <button

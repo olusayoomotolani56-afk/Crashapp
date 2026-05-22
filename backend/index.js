@@ -14,8 +14,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://crashapp-one.vercel.app'
-  ],
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
   credentials: true
 }));
 
@@ -36,11 +36,11 @@ const authLimiter = rateLimit({
   message: { error: 'Too many login attempts, please try again later.' }
 });
 
-const reportLimiter = rateLimit({
+const upvoteLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 10,
-  skip: (req) => !req.user,
-  message: { error: 'You have filed too many reports. Please wait before posting again.' }
+  max: 50,
+  keyGenerator: (req) => req.user?.id?.toString() || req.ip,
+  message: { error: 'Too many upvote actions. Please wait before trying again.' }
 });
 
 // Routes
@@ -51,7 +51,7 @@ const reportRoutes = require('./routes/reportRoutes');
 app.use('/api/reports', globalLimiter, reportRoutes);
 
 const upvoteRoutes = require('./routes/upvoteRoutes');
-app.use('/api/reports', upvoteRoutes);
+app.use('/api/reports', upvoteLimiter, upvoteRoutes);
 
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', globalLimiter, userRoutes);

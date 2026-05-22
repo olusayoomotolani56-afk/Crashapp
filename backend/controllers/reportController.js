@@ -6,6 +6,9 @@ const getReports = async (req, res) => {
   const viewerId = req.user?.id || null;
 
   try {
+    // upvote_count is computed via JOIN+COUNT — there is no counter column on reports.
+    // has_upvoted uses BOOL_OR to check whether the requesting user's id appears in
+    // the joined upvotes rows; returns false (not null) when viewerId is null.
     const result = await pool.query(
       `SELECT reports.*,
               COUNT(upvotes.id) AS upvote_count,
@@ -99,18 +102,22 @@ const updateReport = async (req, res) => {
   const { tool_name, title, description, severity, status } = req.body;
 
   try {
-    const result = await pool.query(
-      `UPDATE reports 
-       SET tool_name = $1, title = $2, description = $3, 
-           severity = $4, status = $5, updated_at = NOW()
-       WHERE id = $6 AND user_id = $7
-       RETURNING *`,
-      [tool_name, title, description, severity, status, id, req.user.id]
-    );
-
-    if (result.rows.length === 0) {
+    const existing = await pool.query('SELECT * FROM reports WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
+    if (existing.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden - you do not own this report' });
+    }
+
+    const result = await pool.query(
+      `UPDATE reports
+       SET tool_name = $1, title = $2, description = $3,
+           severity = $4, status = $5, updated_at = NOW()
+       WHERE id = $6
+       RETURNING *`,
+      [tool_name, title, description, severity, status, id]
+    );
 
     res.status(200).json(result.rows[0]);
   } catch (err) {
@@ -124,15 +131,15 @@ const deleteReport = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(
-      'DELETE FROM reports WHERE id = $1 AND user_id = $2 RETURNING *',
-      [id, req.user.id]
-    );
-
-    if (result.rows.length === 0) {
+    const existing = await pool.query('SELECT * FROM reports WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
+    if (existing.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden - you do not own this report' });
+    }
 
+    await pool.query('DELETE FROM reports WHERE id = $1', [id]);
     res.status(200).json({ message: 'Report deleted successfully' });
   } catch (err) {
     console.error(err);
